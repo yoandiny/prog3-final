@@ -1,0 +1,280 @@
+openapi: 3.0.0
+info:
+  title: API Fédération de Collectivités Agricoles
+  description: API REST permettant de gérer les collectivités agricoles, les membres, les mandats, la trésorerie, les activités, l'assiduité et les statistiques de la fédération.
+  version: "1.0.0"
+
+servers:
+  - url: http://localhost:8080
+
+tags:
+  - name: Collectivités
+    description: Gestion des collectivités agricoles
+  - name: Membres
+    description: Admission et gestion des membres
+  - name: Mandats
+    description: Gestion des mandats au sein des collectivités et de la fédération
+  - name: Trésorerie
+    description: Comptes, soldes, cotisations et paiements
+  - name: Activités
+    description: Gestion des activités (obligatoires et exceptionnelles)
+  - name: Assiduité
+    description: Gestion des présences et taux d'assiduité
+  - name: Statistiques
+    description: Statistiques des collectivités et de la fédération
+
+paths:
+
+  /collectivites:
+    post:
+      tags:
+        - Collectivités
+      summary: Ouvrir une nouvelle collectivité
+      description: Crée une nouvelle collectivité après vérification des conditions requises.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NouvelleCollectiviteRequest'
+      responses:
+        '201':
+          description: Collectivité créée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collectivite'
+        '400':
+          description: Conditions d’ouverture non remplies
+        '403':
+          description: Autorisation de la fédération manquante
+
+  /collectivites/{idCollectivite}:
+    get:
+      tags:
+        - Collectivités
+      summary: Récupérer les informations d’une collectivité
+      parameters:
+        - name: idCollectivite
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Informations détaillées de la collectivité
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collectivite'
+
+  /collectivites/{idCollectivite}/membres:
+    post:
+      tags:
+        - Membres
+      summary: Admettre un nouveau membre dans une collectivité
+      description: Procédure mise à jour le 21 avril 2026. Parrainage par au moins deux membres confirmés avec respect de la règle de répartition des parrains, informations personnelles complètes et paiement des frais d’adhésion plus cotisations annuelles.
+      parameters:
+        - name: idCollectivite
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NouveauMembreRequest'
+      responses:
+        '201':
+          description: Membre admis avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Membre'
+        '400':
+          description: Conditions de parrainage ou de paiement non respectées
+        '403':
+          description: Parrainage insuffisant ou non conforme
+
+  /collectivites/{idCollectivite}/cotisations:
+    post:
+      tags:
+        - Trésorerie
+      summary: Enregistrer un paiement de cotisation
+      parameters:
+        - name: idCollectivite
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaiementCotisationRequest'
+      responses:
+        '201':
+          description: Paiement de cotisation enregistré avec succès
+
+  /collectivites/{idCollectivite}/comptes:
+    get:
+      tags:
+        - Trésorerie
+      summary: Lister tous les comptes d’une collectivité
+      parameters:
+        - name: idCollectivite
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Liste des comptes et leurs soldes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Compte'
+
+    post:
+      tags:
+        - Trésorerie
+      summary: Ajouter un nouveau compte
+      parameters:
+        - name: idCollectivite
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NouveauCompteRequest'
+      responses:
+        '201':
+          description: Compte créé avec succès
+
+  /comptes/{idCompte}/solde:
+    get:
+      tags:
+        - Trésorerie
+      summary: Consulter le solde d’un compte à une date donnée
+      parameters:
+        - name: idCompte
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Solde du compte à la date indiquée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  solde:
+                    type: number
+                  devise:
+                    type: string
+                    default: MGA
+
+  /collectivites/{idCollectivite}/activites:
+    post:
+      tags:
+        - Activités
+      summary: Planifier une activité pour une collectivité
+      parameters:
+        - name: idCollectivite
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActiviteRequest'
+      responses:
+        '201':
+          description: Activité créée avec succès
+
+  /federation/activites:
+    post:
+      tags:
+        - Activités
+      summary: Planifier une activité au niveau de la fédération
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActiviteFederaleRequest'
+      responses:
+        '201':
+          description: Activité fédérale créée avec succès
+
+  /activites/{idActivite}/presences:
+    post:
+      tags:
+        - Assiduité
+      summary: Enregistrer la feuille de présence d’une activité
+      parameters:
+        - name: idActivite
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeuillePresenceRequest'
+      responses:
+        '200':
+          description: Présences enregistrées avec succès
+
+  /collectivites/{idCollectivite}/statistiques:
+    get:
+      tags:
+        - Statistiques
+      summary: Récupérer les statistiques d’une collectivité
+      parameters:
+        - name: idCollectivite
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: periodeDebut
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: periodeFin
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Statistiques détaillées de la collectivité
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatistiquesCollectivite'
+
