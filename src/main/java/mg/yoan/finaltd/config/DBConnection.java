@@ -9,7 +9,7 @@ import java.sql.SQLException;
 public class DBConnection {
 
     private static final Dotenv DOTENV = Dotenv.load();
-    
+
     private static final String URL = getEnv("DB_URL");
     private static final String USER = getEnv("DB_USER");
     private static final String PASSWORD = getEnv("DB_PASSWORD");
@@ -21,7 +21,6 @@ public class DBConnection {
     }
 
     private static String getEnv(String key) {
-        // Dotenv.get() falls back to system environment variables if not found in .env
         String value = DOTENV.get(key);
         if (value == null) {
             value = System.getenv(key);
