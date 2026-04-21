@@ -278,3 +278,258 @@ paths:
               schema:
                 $ref: '#/components/schemas/StatistiquesCollectivite'
 
+  /federation/statistiques:
+    get:
+      tags:
+        - Statistiques
+      summary: Récupérer le rapport global de la fédération
+      parameters:
+        - name: periodeDebut
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: periodeFin
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Rapport statistique global de la fédération
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatistiquesFederation'
+
+components:
+  schemas:
+
+    Collectivite:
+      type: object
+      properties:
+        id:
+          type: integer
+        numero:
+          type: integer
+        nom:
+          type: string
+        ville:
+          type: string
+        specialiteAgricole:
+          type: string
+        dateCreation:
+          type: string
+          format: date
+        nombreMembres:
+          type: integer
+
+    NouvelleCollectiviteRequest:
+      type: object
+      required: [nom, ville, specialiteAgricole]
+      properties:
+        nom:
+          type: string
+        ville:
+          type: string
+        specialiteAgricole:
+          type: string
+
+    NouveauMembreRequest:
+      type: object
+      required: [nom, prenoms, dateNaissance, genre, adresse, metier, telephone, email, parrains, montantPaiement]
+      properties:
+        nom:
+          type: string
+        prenoms:
+          type: string
+        dateNaissance:
+          type: string
+          format: date
+        genre:
+          type: string
+          enum: [MASCULIN, FEMININ]
+        adresse:
+          type: string
+        metier:
+          type: string
+        telephone:
+          type: string
+        email:
+          type: string
+        parrains:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParrainInfo'
+        montantPaiement:
+          type: number
+          description: Frais d’adhésion (50 000 Ar) + cotisations annuelles obligatoires
+
+    ParrainInfo:
+      type: object
+      required: [idMembreParrain, natureRelation]
+      properties:
+        idMembreParrain:
+          type: integer
+        natureRelation:
+          type: string
+          description: Nature de la relation (famille, ami, collègue, etc.)
+
+    Membre:
+      type: object
+      properties:
+        id:
+          type: integer
+        nomComplet:
+          type: string
+        dateNaissance:
+          type: string
+          format: date
+        genre:
+          type: string
+        poste:
+          type: string
+          enum: [PRESIDENT, PRESIDENT_ADJOINT, TRESORIER, SECRETAIRE, MEMBRE_CONFIRME, MEMBRE_JUNIOR]
+        dateAdhesion:
+          type: string
+          format: date
+
+    Compte:
+      type: object
+      properties:
+        id:
+          type: integer
+        typeCompte:
+          type: string
+          enum: [CAISSE, BANCAIRE, MOBILE_MONEY]
+        nomTitulaire:
+          type: string
+        banque:
+          type: string
+          enum: [BRED, MCB, BMOI, BOA, BGFI, AFG, ACCES_BANQUE, BAOBAB, SIPEM]
+        numeroCompte:
+          type: string
+        serviceMobileMoney:
+          type: string
+          enum: [ORANGE_MONEY, MVOLA, AIRTEL_MONEY]
+        solde:
+          type: number
+        devise:
+          type: string
+          default: MGA
+
+    PaiementCotisationRequest:
+      type: object
+      required: [montant, dateEncaissement, modePaiement, idMembre]
+      properties:
+        idMembre:
+          type: integer
+        montant:
+          type: number
+        dateEncaissement:
+          type: string
+          format: date-time
+        modePaiement:
+          type: string
+          enum: [ESPECE, VIREMENT_BANCAIRE, MOBILE_MONEY]
+
+    ActiviteRequest:
+      type: object
+      required: [typeActivite, date, obligatoire]
+      properties:
+        typeActivite:
+          type: string
+          enum: [ASSEMBLEE_GENERALE_MENSUELLE, FORMATION_JUNIORS, ACTIVITE_EXCEPTIONNELLE]
+        date:
+          type: string
+          format: date-time
+        obligatoire:
+          type: boolean
+        description:
+          type: string
+
+    ActiviteFederaleRequest:
+      type: object
+      required: [typeActivite, date, obligatoire]
+      properties:
+        typeActivite:
+          type: string
+        date:
+          type: string
+          format: date-time
+        obligatoire:
+          type: boolean
+        description:
+          type: string
+
+    FeuillePresenceRequest:
+      type: object
+      required: [presences]
+      properties:
+        presences:
+          type: array
+          items:
+            type: object
+            properties:
+              idMembre:
+                type: integer
+              present:
+                type: boolean
+              motifAbsence:
+                type: string
+
+    StatistiquesCollectivite:
+      type: object
+      properties:
+        tauxAssiduiteGlobale:
+          type: number
+        nombreMembresInscrits:
+          type: integer
+        statistiquesParMembre:
+          type: array
+          items:
+            $ref: '#/components/schemas/StatMembre'
+
+    StatMembre:
+      type: object
+      properties:
+        idMembre:
+          type: integer
+        nomComplet:
+          type: string
+        tauxAssiduite:
+          type: number
+        montantEncaisse:
+          type: number
+        montantImpaye:
+          type: number
+
+    StatistiquesFederation:
+      type: object
+      properties:
+        periode:
+          type: object
+          properties:
+            debut:
+              type: string
+              format: date
+            fin:
+              type: string
+              format: date
+        statistiquesParCollectivite:
+          type: array
+          items:
+            type: object
+            properties:
+              idCollectivite:
+                type: integer
+              nomCollectivite:
+                type: string
+              tauxAssiduiteGlobale:
+                type: number
+              pourcentageMembresAJourCotisation:
+                type: number
+              nombreNouveauxAdherents:
+                type: integer
