@@ -6,18 +6,18 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Collectivity {
+public class Payment {
     private Integer id;
-    private String number;
-    private String name;
-    private String specialty;
-    private String city;
-    private LocalDate creationDate;
-    private BigDecimal annualFee;
+    private Integer memberId;
+    private Integer collectivityId;
+    private BigDecimal amount;
+    private LocalDateTime paymentDate;
+    private PaymentType type;
+    private PaymentMode mode;
 }
