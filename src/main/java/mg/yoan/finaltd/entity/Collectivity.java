@@ -1,4 +1,4 @@
-package entity;
+package mg.yoan.finaltd.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

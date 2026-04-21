@@ -1,4 +1,4 @@
-package config;
+package mg.yoan.finaltd.config;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
