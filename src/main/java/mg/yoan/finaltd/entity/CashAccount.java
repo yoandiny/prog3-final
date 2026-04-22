@@ -5,17 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.math.BigDecimal;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Collectivity {
+public class CashAccount implements FinancialAccount {
     private String id;
-    private String name;
-    private Integer number;
-    private String location;
-    private CollectivityStructure structure;
-    private List<Member> members;
+    private BigDecimal amount;
 }

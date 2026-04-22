@@ -1,5 +1,5 @@
 package mg.yoan.finaltd.entity;
 
 public enum PaymentMode {
-    CASH, BANK_TRANSFER, MOBILE_MONEY
+    CASH, MOBILE_BANKING, BANK_TRANSFER
 }
