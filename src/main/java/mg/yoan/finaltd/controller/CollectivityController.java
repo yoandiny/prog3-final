@@ -23,18 +23,18 @@ public class CollectivityController {
         return service.createCollectivities(collectivities);
     }
 
-    @PatchMapping("/{id}/identity")
+    @PutMapping("/{id}/informations")
     public Collectivity assignIdentity(
             @PathVariable Integer id,
             @RequestHeader("Authorization") String authorization,
-            @RequestBody IdentityRequest request) {
+            @RequestBody CollectivityInformation request) {
         return service.assignIdentity(id, request.getNumber(), request.getName());
     }
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class IdentityRequest {
+    public static class CollectivityInformation {
         private String number;
         private String name;
     }
