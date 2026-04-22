@@ -10,7 +10,6 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 public class MemberService {
 
@@ -25,15 +24,15 @@ public class MemberService {
             conn.setAutoCommit(false);
             try {
                 // 1. Fetch Target Collectivity
-                Collectivity collectivity = collectivityRepository.findById(targetCollectivityId, conn)
+                collectivityRepository.findById(targetCollectivityId.toString(), conn)
                         .orElseThrow(() -> new RuntimeException("Collectivity not found"));
 
                 // 2. Validate Sponsors
                 validateSponsorships(targetCollectivityId, sponsorships, conn);
 
-                // 3. Validate Payment
-                BigDecimal requiredAmount = new BigDecimal("50000").add(collectivity.getAnnualFee());
-                if (paidAmount.compareTo(requiredAmount) < 0) {
+                // 3. Validate Payment (registration fee 50000)
+                BigDecimal requiredAmount = new BigDecimal("50000");
+                if (paidAmount == null || paidAmount.compareTo(requiredAmount) < 0) {
                     throw new RuntimeException("Insufficient payment. Required: " + requiredAmount);
                 }
 

@@ -23,8 +23,8 @@ public class CollectivityController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public List<Collectivity> createCollectivities(@RequestBody List<Collectivity> collectivities) {
-        return service.createCollectivities(collectivities);
+    public List<Collectivity> createCollectivities(@RequestBody List<CreateCollectivityRequest> requests) {
+        return service.createCollectivities(requests);
     }
 
     @PutMapping("/{id}/informations")

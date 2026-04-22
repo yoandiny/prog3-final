@@ -2,10 +2,14 @@ package mg.yoan.finaltd.service;
 
 import mg.yoan.finaltd.config.DBConnection;
 import mg.yoan.finaltd.entity.Collectivity;
+import mg.yoan.finaltd.entity.CollectivityStructure;
 import mg.yoan.finaltd.entity.CollectivityTransaction;
+import mg.yoan.finaltd.entity.Member;
 import mg.yoan.finaltd.entity.MembershipFee;
+import mg.yoan.finaltd.controller.CreateCollectivityRequest;
 import mg.yoan.finaltd.repository.CollectivityRepository;
 import mg.yoan.finaltd.repository.CollectivityTransactionRepository;
+import mg.yoan.finaltd.repository.MemberRepository;
 import mg.yoan.finaltd.repository.MembershipFeeRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,9 +29,53 @@ public class CollectivityService {
     private final CollectivityRepository repository;
     private final MembershipFeeRepository feeRepository;
     private final CollectivityTransactionRepository transactionRepository;
+    private final MemberRepository memberRepository;
 
-    public List<Collectivity> createCollectivities(List<Collectivity> collectivities) {
-        return repository.saveAll(collectivities);
+    public List<Collectivity> createCollectivities(List<CreateCollectivityRequest> requests) {
+        try (Connection conn = DBConnection.getConnection()) {
+            List<Collectivity> collectivities = new java.util.ArrayList<>();
+            for (CreateCollectivityRequest request : requests) {
+                if (request.getFederationApproval() == null || !request.getFederationApproval()) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Federation approval is required");
+                }
+                if (request.getStructure() == null) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Structure is required");
+                }
+
+                Member president = getMemberIfExists(request.getStructure().getPresident(), conn);
+                Member vicePresident = getMemberIfExists(request.getStructure().getVicePresident(), conn);
+                Member treasurer = getMemberIfExists(request.getStructure().getTreasurer(), conn);
+                Member secretary = getMemberIfExists(request.getStructure().getSecretary(), conn);
+
+                CollectivityStructure structure = CollectivityStructure.builder()
+                        .president(president)
+                        .vicePresident(vicePresident)
+                        .treasurer(treasurer)
+                        .secretary(secretary)
+                        .build();
+
+                Collectivity collectivity = Collectivity.builder()
+                        .location(request.getLocation())
+                        .structure(structure)
+                        .build();
+
+                collectivities.add(collectivity);
+            }
+            return repository.saveAll(collectivities, conn);
+        } catch (SQLException e) {
+            throw new RuntimeException("Database error", e);
+        }
+    }
+
+    private Member getMemberIfExists(String memberIdStr, Connection conn) {
+        if (memberIdStr == null) return null;
+        try {
+            Integer memberId = Integer.parseInt(memberIdStr);
+            return memberRepository.findById(memberId, conn)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found: " + memberIdStr));
+        } catch (NumberFormatException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found (invalid id): " + memberIdStr);
+        }
     }
 
     public Collectivity updateInformations(String id, Integer number, String name) {

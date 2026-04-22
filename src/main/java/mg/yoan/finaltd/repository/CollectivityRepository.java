@@ -2,8 +2,6 @@ package mg.yoan.finaltd.repository;
 
 import mg.yoan.finaltd.config.DBConnection;
 import mg.yoan.finaltd.entity.Collectivity;
-import mg.yoan.finaltd.entity.Member;
-import mg.yoan.finaltd.entity.CollectivityStructure;
 import org.springframework.stereotype.Repository;
 
 import java.sql.*;
