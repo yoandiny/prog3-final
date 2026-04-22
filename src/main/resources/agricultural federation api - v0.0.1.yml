@@ -57,6 +57,12 @@ paths:
           description: Unique ID of the collectivity to identify.
           schema:
             type: integer
+        - name: Authorization
+          in: header
+          required: true
+          description: "Bearer token for authorization. Example: Bearer <token>"
+          schema:
+            type: string
       requestBody:
         required: true
         description: The identification data (number and name) to assign.
@@ -346,3 +352,30 @@ components:
           type: number
         newMembersCount:
           type: integer
+
+    CollectivityIdentityInput:
+      type: object
+      required: [number, name]
+      properties:
+        number:
+          type: string
+          example: "COL-001"
+          description: Unique identification number assigned by the federation.
+        name:
+          type: string
+          example: "Collectivité de Riziculture"
+          description: Unique name assigned by the federation.
+
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          description: A human-readable explanation of the error.
+        code:
+          type: string
+          description: A machine-readable error code.
+        timestamp:
+          type: string
+          format: date-time
