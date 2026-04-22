@@ -54,6 +54,48 @@ public class CollectivityRepository {
         return Optional.empty();
     }
 
+    public Optional<Collectivity> findByName(String name, Connection conn) {
+        String sql = "SELECT * FROM collectivity WHERE name = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, name);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToCollectivity(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error fetching collectivity by name", e);
+        }
+        return Optional.empty();
+    }
+
+    public Optional<Collectivity> findByNumber(String number, Connection conn) {
+        String sql = "SELECT * FROM collectivity WHERE number = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, number);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToCollectivity(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error fetching collectivity by number", e);
+        }
+        return Optional.empty();
+    }
+
+    public void updateIdentity(Integer id, String number, String name, Connection conn) {
+        String sql = "UPDATE collectivity SET number = ?, name = ? WHERE id = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, number);
+            pstmt.setString(2, name);
+            pstmt.setInt(3, id);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error updating collectivity identity", e);
+        }
+    }
+
     private Collectivity mapResultSetToCollectivity(ResultSet rs) throws SQLException {
         return Collectivity.builder()
                 .id(rs.getInt("id"))
