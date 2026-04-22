@@ -3,10 +3,13 @@ package mg.yoan.finaltd.repository;
 import mg.yoan.finaltd.entity.Member;
 import mg.yoan.finaltd.entity.Gender;
 
+import org.springframework.stereotype.Repository;
+
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.Optional;
 
+@Repository
 public class MemberRepository {
 
     public Optional<Member> findById(Integer id, Connection conn) {

@@ -1,6 +1,5 @@
 package mg.yoan.finaltd.repository;
 
-import mg.yoan.finaltd.config.DBConnection;
 import mg.yoan.finaltd.entity.Collectivity;
 import org.springframework.stereotype.Repository;
 
@@ -13,12 +12,13 @@ import java.util.UUID;
 @Repository
 public class CollectivityRepository {
 
-    public List<Collectivity> saveAll(List<Collectivity> collectivities) {
+    public List<Collectivity> saveAll(List<Collectivity> collectivities, Connection connection) {
         String sql = "INSERT INTO collectivity (id, name, number, location) VALUES (?, ?, ?, ?)";
+        String structureSql = "INSERT INTO collectivity_structure (collectivity_id, president_id, vice_president_id, treasurer_id, secretary_id) VALUES (?, ?, ?, ?, ?)";
         List<Collectivity> savedCollectivities = new ArrayList<>();
 
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (PreparedStatement statement = connection.prepareStatement(sql);
+             PreparedStatement structureStatement = connection.prepareStatement(structureSql)) {
 
             for (Collectivity collectivity : collectivities) {
                 if (collectivity.getId() == null) {
@@ -30,6 +30,16 @@ public class CollectivityRepository {
                 statement.setString(4, collectivity.getLocation());
 
                 statement.executeUpdate();
+
+                if (collectivity.getStructure() != null) {
+                    structureStatement.setString(1, collectivity.getId());
+                    structureStatement.setString(2, collectivity.getStructure().getPresident() != null ? collectivity.getStructure().getPresident().getId().toString() : null);
+                    structureStatement.setString(3, collectivity.getStructure().getVicePresident() != null ? collectivity.getStructure().getVicePresident().getId().toString() : null);
+                    structureStatement.setString(4, collectivity.getStructure().getTreasurer() != null ? collectivity.getStructure().getTreasurer().getId().toString() : null);
+                    structureStatement.setString(5, collectivity.getStructure().getSecretary() != null ? collectivity.getStructure().getSecretary().getId().toString() : null);
+                    structureStatement.executeUpdate();
+                }
+
                 savedCollectivities.add(collectivity);
             }
         } catch (SQLException e) {
