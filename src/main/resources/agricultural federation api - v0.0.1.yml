@@ -35,45 +35,69 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Collectivity'
+        400:
+          description: Bad Request. Invalid input data.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Invalid input data"
 
   '/collectivities/{id}/identity':
     patch:
       summary: Assign number and unique name to a collectivity
       description: |
         Assigns a unique identification number and name to a collectivity.
-        Once assigned, these cannot be changed.
+        This operation is performed by the federation. Once assigned, these values are immutable.
       tags: [Collectivities]
       parameters:
         - name: id
           in: path
           required: true
+          description: Unique ID of the collectivity to identify.
           schema:
             type: integer
       requestBody:
         required: true
+        description: The identification data (number and name) to assign.
         content:
           application/json:
             schema:
-              type: object
-              required: [number, name]
-              properties:
-                number:
-                  type: string
-                name:
-                  type: string
+              $ref: '#/components/schemas/CollectivityIdentityInput'
       responses:
         200:
-          description: Identity assigned successfully
+          description: Identity assigned successfully. Returns the updated collectivity.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Collectivity'
         400:
-          description: Bad Request (e.g., identity already assigned)
+          description: Bad Request. Missing required fields or invalid data format.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Forbidden. Identification has already been assigned and cannot be modified.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Identification has already been assigned"
         404:
-          description: Collectivity not found
+          description: Not Found. The specified collectivity does not exist.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Collectivity not found"
         409:
-          description: Conflict (e.g., name or number already exists)
+          description: Conflict. The assigned number or name already exists in the system.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Assigned number or name already exists"
 
   '/members':
     post:
@@ -94,6 +118,11 @@ paths:
           description: Created members
         400:
           description: Validation error (Insufficient sponsors, missing payment, etc.)
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Validation error"
 
   '/treasury/accounts':
     get:

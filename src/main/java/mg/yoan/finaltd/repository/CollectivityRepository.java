@@ -14,19 +14,17 @@ import java.util.Optional;
 public class CollectivityRepository {
 
     public List<Collectivity> saveAll(List<Collectivity> collectivities) {
-        String sql = "INSERT INTO collectivity (number, name, specialty, city, creation_date, annual_fee) VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
+        String sql = "INSERT INTO collectivity (specialty, city, creation_date, annual_fee) VALUES (?, ?, ?, ?) RETURNING id";
         List<Collectivity> savedCollectivities = new ArrayList<>();
 
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             for (Collectivity collectivity : collectivities) {
-                statement.setString(1, collectivity.getNumber());
-                statement.setString(2, collectivity.getName());
-                statement.setString(3, collectivity.getSpecialty());
-                statement.setString(4, collectivity.getCity());
-                statement.setObject(5, collectivity.getCreationDate() != null ? collectivity.getCreationDate() : LocalDate.now());
-                statement.setBigDecimal(6, collectivity.getAnnualFee());
+                statement.setString(1, collectivity.getSpecialty());
+                statement.setString(2, collectivity.getCity());
+                statement.setObject(3, collectivity.getCreationDate() != null ? collectivity.getCreationDate() : LocalDate.now());
+                statement.setBigDecimal(4, collectivity.getAnnualFee());
 
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
