@@ -36,6 +36,45 @@ paths:
                 items:
                   $ref: '#/components/schemas/Collectivity'
 
+  '/collectivities/{id}/identity':
+    patch:
+      summary: Assign number and unique name to a collectivity
+      description: |
+        Assigns a unique identification number and name to a collectivity.
+        Once assigned, these cannot be changed.
+      tags: [Collectivities]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [number, name]
+              properties:
+                number:
+                  type: string
+                name:
+                  type: string
+      responses:
+        200:
+          description: Identity assigned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collectivity'
+        400:
+          description: Bad Request (e.g., identity already assigned)
+        404:
+          description: Collectivity not found
+        409:
+          description: Conflict (e.g., name or number already exists)
+
   '/members':
     post:
       summary: Register new members
@@ -152,7 +191,7 @@ components:
 
     CreateCollectivity:
       type: object
-      required: [number, name, city]
+      required: [city]
       properties:
         number:
           type: string
