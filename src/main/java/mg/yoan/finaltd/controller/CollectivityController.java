@@ -3,6 +3,7 @@ package mg.yoan.finaltd.controller;
 import mg.yoan.finaltd.entity.Collectivity;
 import mg.yoan.finaltd.entity.CollectivityTransaction;
 import mg.yoan.finaltd.entity.MembershipFee;
+import mg.yoan.finaltd.entity.FinancialAccount;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -52,6 +53,13 @@ public class CollectivityController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
         return service.getTransactions(id, from, to);
+    }
+
+    @GetMapping("/{id}/financialAccounts")
+    public List<FinancialAccount> getFinancialAccounts(
+            @PathVariable String id,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate at) {
+        return service.getFinancialAccounts(id, at);
     }
 
     @Data

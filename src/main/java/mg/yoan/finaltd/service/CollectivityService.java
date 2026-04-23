@@ -11,6 +11,8 @@ import mg.yoan.finaltd.repository.CollectivityRepository;
 import mg.yoan.finaltd.repository.CollectivityTransactionRepository;
 import mg.yoan.finaltd.repository.MemberRepository;
 import mg.yoan.finaltd.repository.MembershipFeeRepository;
+import mg.yoan.finaltd.repository.FinancialAccountRepository;
+import mg.yoan.finaltd.entity.FinancialAccount;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ public class CollectivityService {
     private final MembershipFeeRepository feeRepository;
     private final CollectivityTransactionRepository transactionRepository;
     private final MemberRepository memberRepository;
+    private final FinancialAccountRepository financialAccountRepository;
 
     public List<Collectivity> createCollectivities(List<CreateCollectivityRequest> requests) {
         try (Connection conn = DBConnection.getConnection()) {
@@ -136,6 +139,17 @@ public class CollectivityService {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Collectivity not found");
             }
             return transactionRepository.findByCollectivityIdAndPeriod(id, from, to, conn);
+        } catch (SQLException e) {
+            throw new RuntimeException("Database error", e);
+        }
+    }
+
+    public List<FinancialAccount> getFinancialAccounts(String id, LocalDate at) {
+        try (Connection conn = DBConnection.getConnection()) {
+            if (repository.findById(id, conn).isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Collectivity not found");
+            }
+            return financialAccountRepository.findByCollectivityId(id, at, conn);
         } catch (SQLException e) {
             throw new RuntimeException("Database error", e);
         }
