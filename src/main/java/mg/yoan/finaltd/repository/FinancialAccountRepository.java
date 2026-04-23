@@ -4,7 +4,11 @@ import mg.yoan.finaltd.entity.*;
 import org.springframework.stereotype.Repository;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.time.LocalDate;
+import java.math.BigDecimal;
 
 @Repository
 public class FinancialAccountRepository {
@@ -22,6 +26,78 @@ public class FinancialAccountRepository {
             throw new RuntimeException("Error fetching financial account", e);
         }
         return Optional.empty();
+    }
+
+    public List<FinancialAccount> findByCollectivityId(String collectivityId, LocalDate at, Connection conn) {
+        String sql = "SELECT * FROM financial_account WHERE collectivity_id = ?";
+        List<FinancialAccount> accounts = new ArrayList<>();
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, collectivityId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    FinancialAccount account = mapResultSetToFinancialAccount(rs);
+                    if (at != null) {
+                        account = adjustBalanceToDate(account, at, conn);
+                    }
+                    accounts.add(account);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error fetching financial accounts by collectivity", e);
+        }
+        return accounts;
+    }
+
+
+    private FinancialAccount adjustBalanceToDate(FinancialAccount account, LocalDate at, Connection conn) {
+        String sql = "SELECT SUM(amount) FROM collectivity_transaction WHERE account_credited_id = ? AND creation_date > ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, account.getId());
+            pstmt.setObject(2, at);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    BigDecimal transactionsAfter = rs.getBigDecimal(1);
+                    if (transactionsAfter != null) {
+                        BigDecimal adjustedAmount = account.getAmount().subtract(transactionsAfter);
+                        return updateAccountAmount(account, adjustedAmount);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error adjusting balance", e);
+        }
+        return account;
+    }
+
+    private FinancialAccount updateAccountAmount(FinancialAccount account, BigDecimal newAmount) {
+        if (account instanceof CashAccount) {
+            return CashAccount.builder()
+                    .id(account.getId())
+                    .amount(newAmount)
+                    .build();
+        } else if (account instanceof MobileBankingAccount) {
+            MobileBankingAccount mba = (MobileBankingAccount) account;
+            return MobileBankingAccount.builder()
+                    .id(mba.getId())
+                    .holderName(mba.getHolderName())
+                    .mobileBankingService(mba.getMobileBankingService())
+                    .mobileNumber(mba.getMobileNumber())
+                    .amount(newAmount)
+                    .build();
+        } else if (account instanceof BankAccount) {
+            BankAccount ba = (BankAccount) account;
+            return BankAccount.builder()
+                    .id(ba.getId())
+                    .holderName(ba.getHolderName())
+                    .bankName(ba.getBankName())
+                    .bankCode(ba.getBankCode())
+                    .bankBranchCode(ba.getBankBranchCode())
+                    .bankAccountNumber(ba.getBankAccountNumber())
+                    .bankAccountKey(ba.getBankAccountKey())
+                    .amount(newAmount)
+                    .build();
+        }
+        return account;
     }
 
     private FinancialAccount mapResultSetToFinancialAccount(ResultSet rs) throws SQLException {

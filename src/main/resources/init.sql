@@ -89,7 +89,8 @@ CREATE TABLE financial_account (
     bank_code INTEGER,
     bank_branch_code INTEGER,
     bank_account_number INTEGER,
-    bank_account_key INTEGER
+    bank_account_key INTEGER,
+    collectivity_id VARCHAR(50) REFERENCES collectivity(id)
 );
 
 CREATE TABLE member_payment (

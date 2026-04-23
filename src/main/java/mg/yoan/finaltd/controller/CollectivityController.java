@@ -57,6 +57,13 @@ public class CollectivityController {
         return service.getTransactions(id, from, to);
     }
 
+    @GetMapping("/{id}/financialAccounts")
+    public List<FinancialAccount> getFinancialAccounts(
+            @PathVariable String id,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate at) {
+        return service.getFinancialAccounts(id, at);
+    }
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
