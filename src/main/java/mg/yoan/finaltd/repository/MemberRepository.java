@@ -2,6 +2,7 @@ package mg.yoan.finaltd.repository;
 
 import mg.yoan.finaltd.entity.Member;
 import mg.yoan.finaltd.entity.Gender;
+import mg.yoan.finaltd.entity.MemberOccupation;
 
 import org.springframework.stereotype.Repository;
 
@@ -39,7 +40,7 @@ public class MemberRepository {
             pstmt.setString(4, member.getGender().name());
             pstmt.setString(5, member.getAddress());
             pstmt.setString(6, member.getProfession());
-            pstmt.setString(7, member.getPhone());
+            pstmt.setString(7, member.getPhoneNumber());
             pstmt.setString(8, member.getEmail());
             pstmt.setObject(9, member.getAdmissionDate() != null ? member.getAdmissionDate() : LocalDate.now());
 
@@ -81,9 +82,26 @@ public class MemberRepository {
                 .gender(Gender.valueOf(rs.getString("gender")))
                 .address(rs.getString("address"))
                 .profession(rs.getString("profession"))
-                .phone(rs.getString("phone"))
+                .phoneNumber(rs.getString("phone"))
                 .email(rs.getString("email"))
                 .admissionDate(rs.getObject("admission_date", LocalDate.class))
+                .occupation(rs.getString("occupation") != null ? MemberOccupation.valueOf(rs.getString("occupation")) : null)
                 .build();
+    }
+
+    public List<String> findRefereesByMemberId(Integer memberId, Connection conn) {
+        String sql = "SELECT sponsor_id FROM sponsorship WHERE sponsored_id = CAST(? AS VARCHAR)";
+        List<String> referees = new ArrayList<>();
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, memberId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    referees.add(rs.getString("sponsor_id"));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error fetching referees", e);
+        }
+        return referees;
     }
 }

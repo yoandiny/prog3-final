@@ -100,7 +100,7 @@ public class CollectivityService {
             }
 
             repository.updateInformations(id, number, name, conn);
-            collectivity.setNumber(number);
+            collectivity.setNumber(number != null ? number.toString() : null);
             collectivity.setName(name);
             return collectivity;
         } catch (SQLException e) {
@@ -152,7 +152,25 @@ public class CollectivityService {
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Collectivity not found"));
 
             List<Member> members = memberRepository.findByCollectivityId(id, conn);
+            for (Member member : members) {
+                member.setReferees(memberRepository.findRefereesByMemberId(member.getId(), conn));
+            }
             collectivity.setMembers(members);
+
+            // Populate structure from members list based on occupation
+            CollectivityStructure structure = new CollectivityStructure();
+            for (Member m : members) {
+                if (m.getOccupation() != null) {
+                    switch (m.getOccupation()) {
+                        case PRESIDENT -> structure.setPresident(m);
+                        case VICE_PRESIDENT -> structure.setVicePresident(m);
+                        case TREASURER -> structure.setTreasurer(m);
+                        case SECRETARY -> structure.setSecretary(m);
+                        case SENIOR, JUNIOR -> {} // No specific structure role
+                    }
+                }
+            }
+            collectivity.setStructure(structure);
 
             return collectivity;
         } catch (SQLException e) {

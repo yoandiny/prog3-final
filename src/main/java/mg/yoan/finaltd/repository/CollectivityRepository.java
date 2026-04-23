@@ -12,6 +12,7 @@ import java.util.UUID;
 @Repository
 public class CollectivityRepository {
 
+
     public List<Collectivity> saveAll(List<Collectivity> collectivities, Connection connection) {
         String sql = "INSERT INTO collectivity (id, name, number, location) VALUES (?, ?, ?, ?)";
         List<Collectivity> savedCollectivities = new ArrayList<>();
@@ -98,7 +99,7 @@ public class CollectivityRepository {
         return Collectivity.builder()
                 .id(rs.getString("id"))
                 .name(rs.getString("name"))
-                .number(rs.getObject("number", Integer.class))
+                .number(rs.getString("number"))
                 .location(rs.getString("location"))
                 .build();
     }

@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -19,7 +21,9 @@ public class Member {
     private Gender gender;
     private String address;
     private String profession;
-    private String phone;
+    private String phoneNumber;
     private String email;
     private LocalDate admissionDate;
+    private MemberOccupation occupation;
+    private List<String> referees;
 }

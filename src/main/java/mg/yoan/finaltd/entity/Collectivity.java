@@ -14,7 +14,7 @@ import java.util.List;
 public class Collectivity {
     private String id;
     private String name;
-    private Integer number;
+    private String number;
     private String location;
     private CollectivityStructure structure;
     private List<Member> members;

@@ -2,7 +2,12 @@ package mg.yoan.finaltd.service;
 
 import mg.yoan.finaltd.config.DBConnection;
 import mg.yoan.finaltd.entity.*;
-import mg.yoan.finaltd.repository.*;
+import mg.yoan.finaltd.repository.MemberRepository;
+import mg.yoan.finaltd.repository.CollectivityRepository;
+import mg.yoan.finaltd.repository.MembershipRepository;
+import mg.yoan.finaltd.repository.PaymentRepository;
+import mg.yoan.finaltd.repository.SponsorshipRepository;
+import mg.yoan.finaltd.repository.MemberPaymentRepository;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
