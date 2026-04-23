@@ -2,10 +2,13 @@ package mg.yoan.finaltd.repository;
 
 import mg.yoan.finaltd.entity.Sponsorship;
 
+import org.springframework.stereotype.Repository;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+@Repository
 public class SponsorshipRepository {
 
     public void save(Sponsorship sponsorship, Connection conn) {

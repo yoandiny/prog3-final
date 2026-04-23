@@ -1,8 +1,6 @@
 package mg.yoan.finaltd.controller;
 
-import mg.yoan.finaltd.entity.Collectivity;
-import mg.yoan.finaltd.entity.CollectivityTransaction;
-import mg.yoan.finaltd.entity.MembershipFee;
+import mg.yoan.finaltd.entity.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,6 +18,11 @@ import java.util.List;
 public class CollectivityController {
 
     private final CollectivityService service;
+ 
+    @GetMapping("/{id}")
+    public Collectivity getCollectivityById(@PathVariable String id) {
+        return service.getCollectivityById(id);
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

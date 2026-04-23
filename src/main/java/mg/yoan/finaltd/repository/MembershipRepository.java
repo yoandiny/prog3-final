@@ -2,11 +2,14 @@ package mg.yoan.finaltd.repository;
 
 import mg.yoan.finaltd.entity.Membership;
 
+import org.springframework.stereotype.Repository;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDate;
 
+@Repository
 public class MembershipRepository {
 
     public void save(Membership membership, Connection conn) {

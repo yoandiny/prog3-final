@@ -11,13 +11,19 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
 public class MemberService {
 
-    private final MemberRepository memberRepository = new MemberRepository();
-    private final CollectivityRepository collectivityRepository = new CollectivityRepository();
-    private final MembershipRepository membershipRepository = new MembershipRepository();
-    private final PaymentRepository paymentRepository = new PaymentRepository();
-    private final SponsorshipRepository sponsorshipRepository = new SponsorshipRepository();
+    private final MemberRepository memberRepository;
+    private final CollectivityRepository collectivityRepository;
+    private final MembershipRepository membershipRepository;
+    private final PaymentRepository paymentRepository;
+    private final SponsorshipRepository sponsorshipRepository;
+    private final MemberPaymentRepository memberPaymentRepository;
 
     public void registerMember(Member member, Integer targetCollectivityId, List<Sponsorship> sponsorships, BigDecimal paidAmount, PaymentMode paymentMode) {
         try (Connection conn = DBConnection.getConnection()) {
@@ -111,5 +117,23 @@ public class MemberService {
             }
         }
         return false;
+    }
+
+    public List<MemberPayment> createPayments(String memberIdStr, List<MemberPayment> payments) {
+        try (Connection conn = DBConnection.getConnection()) {
+            Integer memberId = Integer.parseInt(memberIdStr);
+            Member member = memberRepository.findById(memberId, conn)
+                    .orElseThrow(() -> new RuntimeException("Member not found"));
+
+            for (MemberPayment payment : payments) {
+                payment.setMember(member);
+            }
+
+            return memberPaymentRepository.saveAll(payments, conn);
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("Invalid member ID format");
+        } catch (SQLException e) {
+            throw new RuntimeException("Database error saving payments", e);
+        }
     }
 }

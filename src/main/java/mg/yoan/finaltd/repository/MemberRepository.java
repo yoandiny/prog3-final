@@ -7,6 +7,8 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -50,6 +52,24 @@ public class MemberRepository {
             throw new RuntimeException("Error saving member", e);
         }
         return null;
+    }
+
+    public List<Member> findByCollectivityId(String collectivityId, Connection conn) {
+        String sql = "SELECT m.* FROM member m " +
+                     "JOIN membership ms ON m.id = ms.member_id " +
+                     "WHERE ms.collectivity_id = ?";
+        List<Member> members = new ArrayList<>();
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setObject(1, collectivityId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    members.add(mapResultSetToMember(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error fetching members by collectivity id", e);
+        }
+        return members;
     }
 
     private Member mapResultSetToMember(ResultSet rs) throws SQLException {

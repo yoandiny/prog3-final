@@ -68,11 +68,13 @@ public class CollectivityService {
     }
 
     private Member getMemberIfExists(String memberIdStr, Connection conn) {
-        if (memberIdStr == null) return null;
+        if (memberIdStr == null)
+            return null;
         try {
             Integer memberId = Integer.parseInt(memberIdStr);
             return memberRepository.findById(memberId, conn)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found: " + memberIdStr));
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "Member not found: " + memberIdStr));
         } catch (NumberFormatException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found (invalid id): " + memberIdStr);
         }
@@ -136,6 +138,20 @@ public class CollectivityService {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Collectivity not found");
             }
             return transactionRepository.findByCollectivityIdAndPeriod(id, from, to, conn);
+        } catch (SQLException e) {
+            throw new RuntimeException("Database error", e);
+        }
+    }
+
+    public Collectivity getCollectivityById(String id) {
+        try (Connection conn = DBConnection.getConnection()) {
+            Collectivity collectivity = repository.findById(id, conn)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Collectivity not found"));
+
+            List<Member> members = memberRepository.findByCollectivityId(id, conn);
+            collectivity.setMembers(members);
+
+            return collectivity;
         } catch (SQLException e) {
             throw new RuntimeException("Database error", e);
         }

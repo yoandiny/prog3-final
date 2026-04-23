@@ -36,3 +36,4 @@ build/
 ### Local test files ###
 requests.http
 reset.sql
+build.bat

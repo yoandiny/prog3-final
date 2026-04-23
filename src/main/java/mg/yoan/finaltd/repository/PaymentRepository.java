@@ -2,11 +2,14 @@ package mg.yoan.finaltd.repository;
 
 import mg.yoan.finaltd.entity.Payment;
 
+import org.springframework.stereotype.Repository;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 
+@Repository
 public class PaymentRepository {
 
     public void save(Payment payment, Connection conn) {

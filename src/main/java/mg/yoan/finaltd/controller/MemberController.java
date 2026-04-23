@@ -12,11 +12,14 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/members")
+@RequiredArgsConstructor
 public class MemberController {
 
-    private final MemberService memberService = new MemberService();
+    private final MemberService memberService;
 
     @PostMapping
     public ResponseEntity<?> registerMembers(@RequestBody List<RegisterMemberRequest> requests) {
@@ -52,6 +55,12 @@ public class MemberController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
+    }
+
+    @PostMapping("/{id}/payments")
+    @ResponseStatus(HttpStatus.CREATED)
+    public List<MemberPayment> createPayments(@PathVariable String id, @RequestBody List<MemberPayment> payments) {
+        return memberService.createPayments(id, payments);
     }
 
     @Data
