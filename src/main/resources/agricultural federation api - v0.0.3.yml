@@ -7,7 +7,7 @@ info:
     - v0.0.1 (2026-04-21) : POST /collectivities for collectivities creation and POST /members for members creation.
     - v0.0.2 (2026-04-22) : PUT /collectivities/{id}/informations for collectivity information update.
     - v0.0.3 (2026-04-23) : New features about membership fees, collectivities transactions and its financial accounts, and members payments.
-  version: 0.0.1
+  version: 0.0.3
 servers:
   - url: 'https://localhost:8080'
 paths:
@@ -37,6 +37,27 @@ paths:
           description: Collectivity without federation approval or structure missing.
         404:
           description: Member not found.
+  '/collectivities/{id}':
+    get:
+      summary: Retrieve a specific collectivity by ID
+      description: |
+        Retrieves the collectivity whose identifier is the one provided.
+        The returned collectivity includes a `members` attribute which provides the list of members registered with the collectivity.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: The requested collectivity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collectivity'
+        404:
+          description: Collectivity not found.
   '/collectivities/{id}/informations':
     put:
       summary: Attribute collectivity informations to specific collectivity
@@ -146,6 +167,36 @@ paths:
           description: Provided query parameters occur some exceptions.
         404:
           description: Collectivity not found.
+  '/collectivities/{id}/financialAccounts':
+    get:
+      summary: Retrieve list of financial accounts for a specific collectivity
+      description: |
+        Allows obtaining the list of a collectivity's accounts (which can be cash, mobile money service, or bank) with the current balance.
+        In particular, it expects the 'at' query parameter which takes a date and allows retrieving the account balances at the given date.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: at
+          schema:
+            type: string
+            format: date
+          required: false
+      responses:
+        200:
+          description: List of financial accounts with their balance
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FinancialAccount'
+        404:
+          description: Collectivity not found.
+
   '/members':
     post:
       summary: Create list of members
