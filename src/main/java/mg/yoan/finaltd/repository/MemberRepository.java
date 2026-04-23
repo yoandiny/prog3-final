@@ -15,10 +15,10 @@ import java.util.Optional;
 @Repository
 public class MemberRepository {
 
-    public Optional<Member> findById(Integer id, Connection conn) {
+    public Optional<Member> findById(String id, Connection conn) {
         String sql = "SELECT * FROM member WHERE id = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, id);
+            pstmt.setString(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(mapResultSetToMember(rs));
@@ -30,9 +30,9 @@ public class MemberRepository {
         return Optional.empty();
     }
 
-    public Integer save(Member member, Connection conn) {
-        String sql = "INSERT INTO member (first_name, last_name, birth_date, gender, address, profession, phone, email, admission_date) " +
-                     "VALUES (?, ?, ?, ?::gender, ?, ?, ?, ?, ?) RETURNING id";
+    public String save(Member member, Connection conn) {
+        String sql = "INSERT INTO member (first_name, last_name, birth_date, gender, address, profession, phone, email) " +
+                     "VALUES (?, ?, ?, ?::gender, ?, ?, ?, ?) RETURNING id";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, member.getFirstName());
             pstmt.setString(2, member.getLastName());
@@ -42,11 +42,10 @@ public class MemberRepository {
             pstmt.setString(6, member.getProfession());
             pstmt.setString(7, member.getPhoneNumber());
             pstmt.setString(8, member.getEmail());
-            pstmt.setObject(9, member.getAdmissionDate() != null ? member.getAdmissionDate() : LocalDate.now());
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getInt(1);
+                    return rs.getString(1);
                 }
             }
         } catch (SQLException e) {
@@ -57,8 +56,8 @@ public class MemberRepository {
 
     public List<Member> findByCollectivityId(String collectivityId, Connection conn) {
         String sql = "SELECT m.* FROM member m " +
-                     "JOIN membership ms ON m.id = ms.member_id " +
-                     "WHERE ms.collectivity_id = ?";
+                     "JOIN collectivity cl ON m.collectivity_id = cl.id " +
+                     "WHERE cl.id = ?";
         List<Member> members = new ArrayList<>();
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setObject(1, collectivityId);
@@ -75,7 +74,7 @@ public class MemberRepository {
 
     private Member mapResultSetToMember(ResultSet rs) throws SQLException {
         return Member.builder()
-                .id(rs.getInt("id"))
+                .id(rs.getString("id"))
                 .firstName(rs.getString("first_name"))
                 .lastName(rs.getString("last_name"))
                 .birthDate(rs.getObject("birth_date", LocalDate.class))
@@ -84,16 +83,15 @@ public class MemberRepository {
                 .profession(rs.getString("profession"))
                 .phoneNumber(rs.getString("phone"))
                 .email(rs.getString("email"))
-                .admissionDate(rs.getObject("admission_date", LocalDate.class))
                 .occupation(rs.getString("occupation") != null ? MemberOccupation.valueOf(rs.getString("occupation")) : null)
                 .build();
     }
 
-    public List<String> findRefereesByMemberId(Integer memberId, Connection conn) {
-        String sql = "SELECT sponsor_id FROM sponsorship WHERE sponsored_id = CAST(? AS VARCHAR)";
+    public List<String> findRefereesByMemberId(String memberId, Connection conn) {
+        String sql = "SELECT sponsor_id FROM sponsorship WHERE candidate_id = ?";
         List<String> referees = new ArrayList<>();
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, memberId);
+            pstmt.setString(1, memberId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     referees.add(rs.getString("sponsor_id"));

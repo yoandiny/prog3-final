@@ -30,12 +30,12 @@ public class MemberService {
     private final SponsorshipRepository sponsorshipRepository;
     private final MemberPaymentRepository memberPaymentRepository;
 
-    public void registerMember(Member member, Integer targetCollectivityId, List<Sponsorship> sponsorships, BigDecimal paidAmount, PaymentMode paymentMode) {
+    public void registerMember(Member member, String targetCollectivityId, List<Sponsorship> sponsorships, BigDecimal paidAmount, PaymentMode paymentMode) {
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
             try {
                 // 1. Fetch Target Collectivity
-                collectivityRepository.findById(targetCollectivityId.toString(), conn)
+                collectivityRepository.findById(targetCollectivityId, conn)
                         .orElseThrow(() -> new RuntimeException("Collectivity not found"));
 
                 // 2. Validate Sponsors
@@ -48,7 +48,7 @@ public class MemberService {
                 }
 
                 // 4. Persistence
-                Integer memberId = memberRepository.save(member, conn);
+                String memberId = memberRepository.save(member, conn);
                 member.setId(memberId);
 
                 // Save Membership
@@ -88,7 +88,7 @@ public class MemberService {
         }
     }
 
-    private void validateSponsorships(Integer targetCollectivityId, List<Sponsorship> sponsorships, Connection conn) throws SQLException {
+    private void validateSponsorships(String targetCollectivityId, List<Sponsorship> sponsorships, Connection conn) throws SQLException {
         if (sponsorships == null || sponsorships.size() < 2) {
             throw new RuntimeException("A candidate must have at least 2 sponsors.");
         }
@@ -110,11 +110,11 @@ public class MemberService {
         }
     }
 
-    private boolean checkSponsorCollectivity(Integer sponsorId, Integer targetCollectivityId, Connection conn) throws SQLException {
+    private boolean checkSponsorCollectivity(String sponsorId, String targetCollectivityId, Connection conn) throws SQLException {
         String sql = "SELECT COUNT(*) FROM membership WHERE member_id = ? AND collectivity_id = ?";
         try (var pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, sponsorId);
-            pstmt.setInt(2, targetCollectivityId);
+            pstmt.setString(1, sponsorId);
+            pstmt.setString(2, targetCollectivityId);
             try (var rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt(1) > 0;
@@ -124,9 +124,8 @@ public class MemberService {
         return false;
     }
 
-    public List<MemberPayment> createPayments(String memberIdStr, List<MemberPayment> payments) {
+    public List<MemberPayment> createPayments(String memberId, List<MemberPayment> payments) {
         try (Connection conn = DBConnection.getConnection()) {
-            Integer memberId = Integer.parseInt(memberIdStr);
             Member member = memberRepository.findById(memberId, conn)
                     .orElseThrow(() -> new RuntimeException("Member not found"));
 
@@ -135,8 +134,6 @@ public class MemberService {
             }
 
             return memberPaymentRepository.saveAll(payments, conn);
-        } catch (NumberFormatException e) {
-            throw new RuntimeException("Invalid member ID format");
         } catch (SQLException e) {
             throw new RuntimeException("Database error saving payments", e);
         }

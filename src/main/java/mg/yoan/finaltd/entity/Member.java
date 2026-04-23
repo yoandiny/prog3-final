@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Member {
-    private Integer id;
+    private String id;
     private String firstName;
     private String lastName;
     private LocalDate birthDate;
@@ -23,7 +23,6 @@ public class Member {
     private String profession;
     private String phoneNumber;
     private String email;
-    private LocalDate admissionDate;
     private MemberOccupation occupation;
     private List<String> referees;
 }

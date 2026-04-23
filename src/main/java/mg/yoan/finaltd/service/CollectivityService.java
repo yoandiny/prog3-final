@@ -73,14 +73,9 @@ public class CollectivityService {
     private Member getMemberIfExists(String memberIdStr, Connection conn) {
         if (memberIdStr == null)
             return null;
-        try {
-            Integer memberId = Integer.parseInt(memberIdStr);
-            return memberRepository.findById(memberId, conn)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                            "Member not found: " + memberIdStr));
-        } catch (NumberFormatException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found (invalid id): " + memberIdStr);
-        }
+        return memberRepository.findById(memberIdStr, conn)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Member not found: " + memberIdStr));
     }
 
     public Collectivity updateInformations(String id, Integer number, String name) {

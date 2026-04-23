@@ -15,9 +15,9 @@ public class SponsorshipRepository {
         String sql = "INSERT INTO sponsorship (candidate_id, sponsor_id, collectivity_id, relation_type) " +
                      "VALUES (?, ?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, sponsorship.getCandidateId());
-            pstmt.setInt(2, sponsorship.getSponsorId());
-            pstmt.setInt(3, sponsorship.getCollectivityId());
+            pstmt.setString(1, sponsorship.getCandidateId());
+            pstmt.setString(2, sponsorship.getSponsorId());
+            pstmt.setString(3, sponsorship.getCollectivityId());
             pstmt.setString(4, sponsorship.getRelationType());
 
             pstmt.executeUpdate();

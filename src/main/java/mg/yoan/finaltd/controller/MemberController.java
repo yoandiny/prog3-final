@@ -33,7 +33,6 @@ public class MemberController {
                         .gender(req.getGender())
                         .address(req.getAddress())
                         .profession(req.getProfession())
-                        .admissionDate(LocalDate.now())
                         .build();
 
                 List<Sponsorship> sponsorships = req.getSponsors().stream()
@@ -72,7 +71,7 @@ public class MemberController {
         private Gender gender;
         private String address;
         private String profession;
-        private Integer collectivityId;
+        private String collectivityId;
         private List<SponsorInput> sponsors;
         private BigDecimal paidAmount;
         private PaymentMode paymentMode;
@@ -80,7 +79,7 @@ public class MemberController {
 
     @Data
     public static class SponsorInput {
-        private Integer sponsorId;
+        private String sponsorId;
         private String relationNature;
     }
 }

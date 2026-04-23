@@ -14,8 +14,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Payment {
     private Integer id;
-    private Integer memberId;
-    private Integer collectivityId;
+    private String memberId;
+    private String collectivityId;
     private BigDecimal amount;
     private LocalDateTime paymentDate;
     private PaymentType type;
