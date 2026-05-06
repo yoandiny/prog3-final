@@ -8,6 +8,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import mg.yoan.finaltd.service.CollectivityService;
+import mg.yoan.finaltd.dto.CollectivityLocalStatistics;
+import mg.yoan.finaltd.dto.CollectivityOverallStatistics;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -62,6 +64,21 @@ public class CollectivityController {
             @PathVariable String id,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate at) {
         return service.getFinancialAccounts(id, at);
+    }
+
+    @GetMapping("/{id}/statistics")
+    public List<CollectivityLocalStatistics> getCollectivityStatistics(
+            @PathVariable String id,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        return service.getCollectivityStatistics(id, from, to);
+    }
+
+    @GetMapping("/statistics")
+    public List<CollectivityOverallStatistics> getOverallStatistics(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        return service.getOverallStatistics(from, to);
     }
 
     @Data

@@ -38,6 +38,24 @@ public class MemberPaymentRepository {
         }
     }
 
+    public java.math.BigDecimal getSumPaymentsByMemberAndPeriod(Integer memberId, LocalDate from, LocalDate to, Connection connection) {
+        String sql = "SELECT SUM(amount) FROM member_payment WHERE member_id = ? AND creation_date BETWEEN ? AND ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setInt(1, memberId);
+            pstmt.setObject(2, from);
+            pstmt.setObject(3, to);
+            try (java.sql.ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    java.math.BigDecimal sum = rs.getBigDecimal(1);
+                    return sum != null ? sum : java.math.BigDecimal.ZERO;
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error calculating sum of payments", e);
+        }
+        return java.math.BigDecimal.ZERO;
+    }
+
     public List<MemberPayment> saveAll(List<MemberPayment> payments) {
         try (Connection conn = DBConnection.getConnection()) {
             return saveAll(payments, conn);

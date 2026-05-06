@@ -12,7 +12,12 @@ import mg.yoan.finaltd.repository.CollectivityTransactionRepository;
 import mg.yoan.finaltd.repository.MemberRepository;
 import mg.yoan.finaltd.repository.MembershipFeeRepository;
 import mg.yoan.finaltd.repository.FinancialAccountRepository;
+import mg.yoan.finaltd.repository.MemberPaymentRepository;
 import mg.yoan.finaltd.entity.FinancialAccount;
+import mg.yoan.finaltd.entity.ActivityStatus;
+import mg.yoan.finaltd.dto.CollectivityLocalStatistics;
+import mg.yoan.finaltd.dto.CollectivityOverallStatistics;
+import mg.yoan.finaltd.dto.MemberDescription;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -33,6 +38,7 @@ public class CollectivityService {
     private final CollectivityTransactionRepository transactionRepository;
     private final MemberRepository memberRepository;
     private final FinancialAccountRepository financialAccountRepository;
+    private final MemberPaymentRepository memberPaymentRepository;
 
     public List<Collectivity> createCollectivities(List<CreateCollectivityRequest> requests) {
         try (Connection conn = DBConnection.getConnection()) {
@@ -186,6 +192,119 @@ public class CollectivityService {
             return financialAccountRepository.findByCollectivityId(id, at, conn);
         } catch (SQLException e) {
             throw new RuntimeException("Database error", e);
+        }
+    }
+
+    public List<CollectivityLocalStatistics> getCollectivityStatistics(String id, LocalDate from, LocalDate to) {
+        try (Connection conn = DBConnection.getConnection()) {
+            if (repository.findById(id, conn).isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Collectivity not found");
+            }
+            List<Member> members = memberRepository.findByCollectivityId(id, conn);
+            List<MembershipFee> fees = feeRepository.findByCollectivityId(id, conn);
+            List<CollectivityLocalStatistics> stats = new java.util.ArrayList<>();
+
+            for (Member member : members) {
+                java.math.BigDecimal earned = memberPaymentRepository.getSumPaymentsByMemberAndPeriod(member.getId(), from, to, conn);
+                java.math.BigDecimal due = java.math.BigDecimal.ZERO;
+                for (MembershipFee fee : fees) {
+                    if (fee.getStatus() == ActivityStatus.ACTIVE) {
+                        long occurrences = calculateOccurrences(fee, member.getAdmissionDate(), from, to);
+                        due = due.add(fee.getAmount().multiply(java.math.BigDecimal.valueOf(occurrences)));
+                    }
+                }
+                java.math.BigDecimal unpaid = due.subtract(earned);
+                if (unpaid.compareTo(java.math.BigDecimal.ZERO) < 0) unpaid = java.math.BigDecimal.ZERO;
+
+                stats.add(CollectivityLocalStatistics.builder()
+                        .memberDescription(MemberDescription.builder()
+                                .id(member.getId().toString())
+                                .firstName(member.getFirstName())
+                                .lastName(member.getLastName())
+                                .email(member.getEmail())
+                                .occupation(member.getOccupation() != null ? member.getOccupation().name() : null)
+                                .build())
+                        .earnedAmount(earned.doubleValue())
+                        .unpaidAmount(unpaid.doubleValue())
+                        .build());
+            }
+            return stats;
+        } catch (SQLException e) {
+            throw new RuntimeException("Database error", e);
+        }
+    }
+
+    public List<CollectivityOverallStatistics> getOverallStatistics(LocalDate from, LocalDate to) {
+        try (Connection conn = DBConnection.getConnection()) {
+            List<Collectivity> allCollectivities = repository.findAll(conn);
+            List<CollectivityOverallStatistics> stats = new java.util.ArrayList<>();
+
+            for (Collectivity c : allCollectivities) {
+                List<Member> members = memberRepository.findByCollectivityId(c.getId(), conn);
+                List<MembershipFee> fees = feeRepository.findByCollectivityId(c.getId(), conn);
+
+                int newMembers = 0;
+                int currentMembers = 0;
+
+                for (Member m : members) {
+                    if (m.getAdmissionDate() != null && !m.getAdmissionDate().isBefore(from) && !m.getAdmissionDate().isAfter(to)) {
+                        newMembers++;
+                    }
+
+                    java.math.BigDecimal earned = memberPaymentRepository.getSumPaymentsByMemberAndPeriod(m.getId(), from, to, conn);
+                    java.math.BigDecimal due = java.math.BigDecimal.ZERO;
+                    for (MembershipFee fee : fees) {
+                        if (fee.getStatus() == ActivityStatus.ACTIVE) {
+                            due = due.add(fee.getAmount().multiply(java.math.BigDecimal.valueOf(calculateOccurrences(fee, m.getAdmissionDate(), from, to))));
+                        }
+                    }
+
+                    if (earned.compareTo(due) >= 0) {
+                        currentMembers++;
+                    }
+                }
+
+                double percentage = members.isEmpty() ? 0.0 : (double) currentMembers / members.size() * 100.0;
+
+                stats.add(CollectivityOverallStatistics.builder()
+                        .collectivityInformation(CollectivityOverallStatistics.CollectivityInformation.builder()
+                                .name(c.getName())
+                                .number(c.getNumber() != null ? Integer.parseInt(c.getNumber()) : null)
+                                .build())
+                        .newMembersNumber(newMembers)
+                        .overallMemberCurrentDuePercentage(percentage)
+                        .build());
+            }
+            return stats;
+        } catch (SQLException e) {
+            throw new RuntimeException("Database error", e);
+        }
+    }
+
+    private long calculateOccurrences(MembershipFee fee, LocalDate admissionDate, LocalDate from, LocalDate to) {
+        LocalDate start = fee.getEligibleFrom();
+        if (admissionDate != null && admissionDate.isAfter(start)) {
+            start = admissionDate;
+        }
+        if (from.isAfter(start)) {
+            start = from;
+        }
+
+        if (start.isAfter(to)) {
+            return 0;
+        }
+
+        switch (fee.getFrequency()) {
+            case PUNCTUALLY:
+                return (fee.getEligibleFrom().isAfter(from.minusDays(1)) && fee.getEligibleFrom().isBefore(to.plusDays(1))) ? 1 : 0;
+            case WEEKLY:
+                return java.time.temporal.ChronoUnit.WEEKS.between(start, to) + 1;
+            case MONTHLY:
+                return java.time.temporal.ChronoUnit.MONTHS.between(start, to) + 1;
+            case ANNUALLY:
+                return java.time.temporal.ChronoUnit.YEARS.between(start, to) + 1;
+            default:
+                return 0;
         }
     }
 }

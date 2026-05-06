@@ -95,6 +95,20 @@ public class CollectivityRepository {
         }
     }
 
+    public List<Collectivity> findAll(Connection conn) {
+        String sql = "SELECT * FROM collectivity";
+        List<Collectivity> collectivities = new ArrayList<>();
+        try (PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                collectivities.add(mapResultSetToCollectivity(rs));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error fetching all collectivities", e);
+        }
+        return collectivities;
+    }
+
     private Collectivity mapResultSetToCollectivity(ResultSet rs) throws SQLException {
         return Collectivity.builder()
                 .id(rs.getString("id"))
