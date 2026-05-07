@@ -12,13 +12,14 @@ import java.sql.SQLException;
 public class SponsorshipRepository {
 
     public void save(Sponsorship sponsorship, Connection conn) {
-        String sql = "INSERT INTO sponsorship (candidate_id, sponsor_id, collectivity_id, relation_type) " +
-                     "VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO sponsorship (id, candidate_id, sponsor_id, collectivity_id, relation_type) " +
+                     "VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, sponsorship.getCandidateId());
-            pstmt.setString(2, sponsorship.getSponsorId());
-            pstmt.setString(3, sponsorship.getCollectivityId());
-            pstmt.setString(4, sponsorship.getRelationType());
+            pstmt.setString(1, sponsorship.getId() != null ? sponsorship.getId() : java.util.UUID.randomUUID().toString());
+            pstmt.setString(2, sponsorship.getCandidateId());
+            pstmt.setString(3, sponsorship.getSponsorId());
+            pstmt.setString(4, sponsorship.getCollectivityId());
+            pstmt.setString(5, sponsorship.getRelationType());
 
             pstmt.executeUpdate();
         } catch (SQLException e) {

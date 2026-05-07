@@ -9,6 +9,10 @@ CREATE TYPE payment_mode AS ENUM ('CASH', 'MOBILE_MONEY', 'BANK_TRANSFER');
 
 CREATE TYPE mobile_service_name AS ENUM ('ORANGE_MONEY', 'MVOLA', 'AIRTEL_MONEY');
 
+CREATE TYPE member_status AS ENUM ('JUNIOR', 'CONFIRMED');
+
+CREATE TYPE attendance_status AS ENUM ('PRESENT', 'ABSENT', 'EXCUSED');
+
 CREATE TYPE bank_name AS ENUM (
     'BRED',
     'MCB',
@@ -54,10 +58,20 @@ CREATE TABLE member (
 );
 
 CREATE TABLE sponsorship (
-    id SERIAL PRIMARY KEY,
+    id VARCHAR(50) PRIMARY KEY,
     candidate_id VARCHAR(50) REFERENCES member (id),
     sponsor_id VARCHAR(50) REFERENCES member (id),
+    collectivity_id VARCHAR(50) REFERENCES collectivity (id),
+    relation_type VARCHAR(255),
     UNIQUE (candidate_id, sponsor_id)
+);
+
+CREATE TABLE membership (
+    id VARCHAR(50) PRIMARY KEY,
+    member_id VARCHAR(50) REFERENCES member (id),
+    collectivity_id VARCHAR(50) REFERENCES collectivity (id),
+    status member_status,
+    registration_date DATE
 );
 
 CREATE TABLE collectivity_structure (
@@ -111,4 +125,22 @@ CREATE TABLE collectivity_transaction (
     payment_mode payment_mode,
     account_credited_id VARCHAR(50) REFERENCES financial_account (id),
     member_debited_id VARCHAR(50) REFERENCES member (id)
+);
+
+CREATE TABLE activity (
+    id VARCHAR(50) PRIMARY KEY,
+    label VARCHAR(255),
+    activity_date DATE,
+    collectivity_id VARCHAR(50) REFERENCES collectivity (id),
+    is_mandatory BOOLEAN,
+    target_occupation member_occupation
+);
+
+CREATE TABLE attendance (
+    id VARCHAR(50) PRIMARY KEY,
+    activity_id VARCHAR(50) REFERENCES activity (id),
+    member_id VARCHAR(50) REFERENCES member (id),
+    status attendance_status,
+    reason TEXT,
+    UNIQUE (activity_id, member_id)
 );

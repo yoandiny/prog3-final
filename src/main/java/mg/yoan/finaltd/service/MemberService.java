@@ -123,8 +123,6 @@ public class MemberService {
             }
 
             return memberPaymentRepository.saveAll(payments, conn);
-        } catch (NumberFormatException e) {
-            throw new RuntimeException("Invalid member ID format");
         } catch (SQLException e) {
             throw new RuntimeException("Database error saving payments", e);
         }
