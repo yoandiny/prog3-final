@@ -32,7 +32,7 @@ public class MemberRepository {
     }
 
     public String save(Member member, Connection conn) {
-        String sql = "INSERT INTO member (id, first_name, last_name, birth_date, address, profession, phone_number, email, occupation, collectivity_id) " +
+        String sql = "INSERT INTO member (id, first_name, last_name, birth_date, address, profession, phone, email, occupation, collectivity_id) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?::member_occupation, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, member.getId() != null ? member.getId() : UUID.randomUUID().toString());
@@ -81,7 +81,7 @@ public class MemberRepository {
                 .birthDate(rs.getObject("birth_date", LocalDate.class))
                 .address(rs.getString("address"))
                 .profession(rs.getString("profession"))
-                .phoneNumber(rs.getString("phone_number"))
+                .phoneNumber(rs.getString("phone"))
                 .email(rs.getString("email"))
                 .occupation(rs.getString("occupation") != null ? MemberOccupation.valueOf(rs.getString("occupation")) : null)
                 .collectivityId(rs.getString("collectivity_id"))
@@ -89,7 +89,7 @@ public class MemberRepository {
     }
 
     public List<String> findRefereesByMemberId(String memberId, Connection conn) {
-        String sql = "SELECT sponsor_id FROM sponsorship WHERE sponsored_id = ?";
+        String sql = "SELECT sponsor_id FROM sponsorship WHERE candidate_id = ?";
         List<String> referees = new ArrayList<>();
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, memberId);
