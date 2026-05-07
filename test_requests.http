@@ -1,0 +1,38 @@
+### Variables
+@baseUrl = http://localhost:8080
+@collectivityId = c1
+@fromDate = 2024-01-01
+@toDate = 2024-12-31
+
+### 1. Obtenir les statistiques locales d'une collectivité spécifique
+# Cette route retourne l'adhésion et les montants dus/payés par membre pour une période donnée.
+GET {{baseUrl}}/collectivities/{{collectivityId}}/statistics?from={{fromDate}}&to={{toDate}}
+Accept: application/json
+
+###
+
+### 2. Obtenir les statistiques globales de toutes les collectivités
+# Cette route retourne le pourcentage de membres à jour et le nombre de nouveaux membres par collectivité.
+# Note : L'erreur dans la spec YAML (paramètre 'id' inutile en path) a été ignorée conformément au code.
+GET {{baseUrl}}/collectivities/statistics?from={{fromDate}}&to={{toDate}}
+Accept: application/json
+
+###
+
+### 3. Autres routes pour vérification (v0.0.1 - v0.0.4)
+
+### Récupérer une collectivité par ID
+GET {{baseUrl}}/collectivities/{{collectivityId}}
+Accept: application/json
+
+###
+
+### Récupérer les transactions d'une collectivité
+GET {{baseUrl}}/collectivities/{{collectivityId}}/transactions?from={{fromDate}}&to={{toDate}}
+Accept: application/json
+
+###
+
+### Récupérer les comptes financiers d'une collectivité
+GET {{baseUrl}}/collectivities/{{collectivityId}}/financialAccounts
+Accept: application/json

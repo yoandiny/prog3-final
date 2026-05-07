@@ -14,16 +14,15 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Member {
-    private Integer id;
+    private String id;
     private String firstName;
     private String lastName;
     private LocalDate birthDate;
-    private Gender gender;
     private String address;
     private String profession;
     private String phoneNumber;
     private String email;
-    private LocalDate admissionDate;
     private MemberOccupation occupation;
+    private String collectivityId;
     private List<String> referees;
 }

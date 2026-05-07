@@ -5,7 +5,7 @@ CREATE TYPE frequency AS ENUM ('WEEKLY', 'MONTHLY', 'ANNUALLY', 'PUNCTUALLY');
 
 CREATE TYPE activity_status AS ENUM ('ACTIVE', 'INACTIVE');
 
-CREATE TYPE payment_mode AS ENUM ('CASH', 'MOBILE_BANKING', 'BANK_TRANSFER');
+CREATE TYPE payment_mode AS ENUM ('CASH', 'MOBILE_MONEY', 'BANK_TRANSFER');
 
 CREATE TYPE mobile_service_name AS ENUM ('ORANGE_MONEY', 'MVOLA', 'AIRTEL_MONEY');
 
@@ -46,7 +46,7 @@ CREATE TABLE member (
     address TEXT,
     profession VARCHAR(255),
     phone_number INTEGER,
-    email VARCHAR(255) UNIQUE,
+    email VARCHAR(255),
     occupation member_occupation,
     registration_fee_paid BOOLEAN DEFAULT FALSE,
     membership_dues_paid BOOLEAN DEFAULT FALSE,

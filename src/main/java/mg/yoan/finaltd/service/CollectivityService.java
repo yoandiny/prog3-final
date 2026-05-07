@@ -76,17 +76,12 @@ public class CollectivityService {
         }
     }
 
-    private Member getMemberIfExists(String memberIdStr, Connection conn) {
-        if (memberIdStr == null)
+    private Member getMemberIfExists(String memberId, Connection conn) {
+        if (memberId == null)
             return null;
-        try {
-            Integer memberId = Integer.parseInt(memberIdStr);
-            return memberRepository.findById(memberId, conn)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                            "Member not found: " + memberIdStr));
-        } catch (NumberFormatException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found (invalid id): " + memberIdStr);
-        }
+        return memberRepository.findById(memberId, conn)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Member not found: " + memberId));
     }
 
     public Collectivity updateInformations(String id, Integer number, String name) {
@@ -209,7 +204,7 @@ public class CollectivityService {
                 java.math.BigDecimal due = java.math.BigDecimal.ZERO;
                 for (MembershipFee fee : fees) {
                     if (fee.getStatus() == ActivityStatus.ACTIVE) {
-                        long occurrences = calculateOccurrences(fee, member.getAdmissionDate(), from, to);
+                        long occurrences = calculateOccurrences(fee, null, from, to);
                         due = due.add(fee.getAmount().multiply(java.math.BigDecimal.valueOf(occurrences)));
                     }
                 }
@@ -218,7 +213,7 @@ public class CollectivityService {
 
                 stats.add(CollectivityLocalStatistics.builder()
                         .memberDescription(MemberDescription.builder()
-                                .id(member.getId().toString())
+                                .id(member.getId())
                                 .firstName(member.getFirstName())
                                 .lastName(member.getLastName())
                                 .email(member.getEmail())
@@ -247,15 +242,13 @@ public class CollectivityService {
                 int currentMembers = 0;
 
                 for (Member m : members) {
-                    if (m.getAdmissionDate() != null && !m.getAdmissionDate().isBefore(from) && !m.getAdmissionDate().isAfter(to)) {
-                        newMembers++;
-                    }
+
 
                     java.math.BigDecimal earned = memberPaymentRepository.getSumPaymentsByMemberAndPeriod(m.getId(), from, to, conn);
                     java.math.BigDecimal due = java.math.BigDecimal.ZERO;
                     for (MembershipFee fee : fees) {
                         if (fee.getStatus() == ActivityStatus.ACTIVE) {
-                            due = due.add(fee.getAmount().multiply(java.math.BigDecimal.valueOf(calculateOccurrences(fee, m.getAdmissionDate(), from, to))));
+                             due = due.add(fee.getAmount().multiply(java.math.BigDecimal.valueOf(calculateOccurrences(fee, null, from, to))));
                         }
                     }
 

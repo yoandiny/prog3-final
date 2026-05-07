@@ -38,10 +38,10 @@ public class MemberPaymentRepository {
         }
     }
 
-    public java.math.BigDecimal getSumPaymentsByMemberAndPeriod(Integer memberId, LocalDate from, LocalDate to, Connection connection) {
+    public java.math.BigDecimal getSumPaymentsByMemberAndPeriod(String memberId, LocalDate from, LocalDate to, Connection connection) {
         String sql = "SELECT SUM(amount) FROM member_payment WHERE member_id = ? AND creation_date BETWEEN ? AND ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setInt(1, memberId);
+            pstmt.setString(1, memberId);
             pstmt.setObject(2, from);
             pstmt.setObject(3, to);
             try (java.sql.ResultSet rs = pstmt.executeQuery()) {

@@ -10,9 +10,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Sponsorship {
-    private Integer id;
-    private Integer candidateId;
-    private Integer sponsorId;
-    private Integer collectivityId;
+    private String id;
+    private String candidateId;
+    private String sponsorId;
+    private String collectivityId;
     private String relationType;
 }

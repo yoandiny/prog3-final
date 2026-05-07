@@ -11,14 +11,15 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public class MemberRepository {
 
-    public Optional<Member> findById(Integer id, Connection conn) {
+    public Optional<Member> findById(String id, Connection conn) {
         String sql = "SELECT * FROM member WHERE id = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, id);
+            pstmt.setString(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(mapResultSetToMember(rs));
@@ -30,23 +31,24 @@ public class MemberRepository {
         return Optional.empty();
     }
 
-    public Integer save(Member member, Connection conn) {
-        String sql = "INSERT INTO member (first_name, last_name, birth_date, gender, address, profession, phone, email, admission_date) " +
-                     "VALUES (?, ?, ?, ?::gender, ?, ?, ?, ?, ?) RETURNING id";
+    public String save(Member member, Connection conn) {
+        String sql = "INSERT INTO member (id, first_name, last_name, birth_date, address, profession, phone_number, email, occupation, collectivity_id) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?::member_occupation, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, member.getFirstName());
-            pstmt.setString(2, member.getLastName());
-            pstmt.setObject(3, member.getBirthDate());
-            pstmt.setString(4, member.getGender().name());
+            pstmt.setString(1, member.getId() != null ? member.getId() : UUID.randomUUID().toString());
+            pstmt.setString(2, member.getFirstName());
+            pstmt.setString(3, member.getLastName());
+            pstmt.setObject(4, member.getBirthDate());
             pstmt.setString(5, member.getAddress());
             pstmt.setString(6, member.getProfession());
-            pstmt.setString(7, member.getPhoneNumber());
+            pstmt.setObject(7, member.getPhoneNumber() != null ? Integer.parseInt(member.getPhoneNumber()) : null);
             pstmt.setString(8, member.getEmail());
-            pstmt.setObject(9, member.getAdmissionDate() != null ? member.getAdmissionDate() : LocalDate.now());
+            pstmt.setObject(9, member.getOccupation() != null ? member.getOccupation().name() : null);
+            pstmt.setString(10, member.getCollectivityId());
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getInt(1);
+                    return rs.getString(1);
                 }
             }
         } catch (SQLException e) {
@@ -56,9 +58,7 @@ public class MemberRepository {
     }
 
     public List<Member> findByCollectivityId(String collectivityId, Connection conn) {
-        String sql = "SELECT m.* FROM member m " +
-                     "JOIN membership ms ON m.id = ms.member_id " +
-                     "WHERE ms.collectivity_id = ?";
+        String sql = "SELECT * FROM member WHERE collectivity_id = ?";
         List<Member> members = new ArrayList<>();
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setObject(1, collectivityId);
@@ -75,25 +75,24 @@ public class MemberRepository {
 
     private Member mapResultSetToMember(ResultSet rs) throws SQLException {
         return Member.builder()
-                .id(rs.getInt("id"))
+                .id(rs.getString("id"))
                 .firstName(rs.getString("first_name"))
                 .lastName(rs.getString("last_name"))
                 .birthDate(rs.getObject("birth_date", LocalDate.class))
-                .gender(Gender.valueOf(rs.getString("gender")))
                 .address(rs.getString("address"))
                 .profession(rs.getString("profession"))
-                .phoneNumber(rs.getString("phone"))
+                .phoneNumber(rs.getString("phone_number"))
                 .email(rs.getString("email"))
-                .admissionDate(rs.getObject("admission_date", LocalDate.class))
                 .occupation(rs.getString("occupation") != null ? MemberOccupation.valueOf(rs.getString("occupation")) : null)
+                .collectivityId(rs.getString("collectivity_id"))
                 .build();
     }
 
-    public List<String> findRefereesByMemberId(Integer memberId, Connection conn) {
-        String sql = "SELECT sponsor_id FROM sponsorship WHERE sponsored_id = CAST(? AS VARCHAR)";
+    public List<String> findRefereesByMemberId(String memberId, Connection conn) {
+        String sql = "SELECT sponsor_id FROM sponsorship WHERE sponsored_id = ?";
         List<String> referees = new ArrayList<>();
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, memberId);
+            pstmt.setString(1, memberId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     referees.add(rs.getString("sponsor_id"));

@@ -61,7 +61,7 @@ public class CollectivityTransactionRepository {
                 .amount(rs.getBigDecimal("amount"))
                 .paymentMode(PaymentMode.valueOf(rs.getString("payment_mode")))
                 .accountCredited(accountRepository.findById(rs.getString("account_credited_id"), conn).orElse(null))
-                .memberDebited(memberRepository.findById(rs.getInt("member_debited_id"), conn).orElse(null))
+                .memberDebited(memberRepository.findById(rs.getString("member_debited_id"), conn).orElse(null))
                 .build();
     }
 }

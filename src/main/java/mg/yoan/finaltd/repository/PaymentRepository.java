@@ -16,8 +16,8 @@ public class PaymentRepository {
         String sql = "INSERT INTO payment (member_id, collectivity_id, amount, payment_date, type, mode) " +
                      "VALUES (?, ?, ?, ?, ?::payment_type, ?::payment_mode)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, payment.getMemberId());
-            pstmt.setInt(2, payment.getCollectivityId());
+            pstmt.setString(1, payment.getMemberId());
+            pstmt.setString(2, payment.getCollectivityId());
             pstmt.setBigDecimal(3, payment.getAmount());
             pstmt.setObject(4, payment.getPaymentDate() != null ? payment.getPaymentDate() : LocalDateTime.now());
             pstmt.setString(5, payment.getType().name());

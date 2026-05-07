@@ -12,9 +12,9 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Membership {
-    private Integer id;
-    private Integer memberId;
-    private Integer collectivityId;
+    private String id;
+    private String memberId;
+    private String collectivityId;
     private MemberStatus status;
     private LocalDate registrationDate;
 }
