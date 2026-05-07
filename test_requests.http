@@ -1,6 +1,6 @@
 ### Variables
 @baseUrl = http://localhost:8080
-@collectivityId = c1
+@collectivityId = col-1
 @fromDate = 2024-01-01
 @toDate = 2024-12-31
 
@@ -36,3 +36,74 @@ Accept: application/json
 ### Récupérer les comptes financiers d'une collectivité
 GET {{baseUrl}}/collectivities/{{collectivityId}}/financialAccounts
 Accept: application/json
+
+###
+
+### 4. Gestion des activités (Fonctionnalité E)
+
+### Ajouter des activités à une collectivité
+POST {{baseUrl}}/collectivities/{{collectivityId}}/activities
+Content-Type: application/json
+
+[
+  {
+    "id": "act1",
+    "label": "Assemblée générale mensuelle",
+    "date": "2024-05-12",
+    "mandatory": true
+  },
+  {
+    "id": "act2",
+    "label": "Formation obligatoire pour les juniors",
+    "date": "2024-05-25",
+    "mandatory": true,
+    "targetOccupation": "JUNIOR"
+  }
+]
+
+###
+
+### Récupérer les activités d'une collectivité
+GET {{baseUrl}}/collectivities/{{collectivityId}}/activities
+Accept: application/json
+
+###
+
+### 5. Suivi de l'assiduité (Fonctionnalité F)
+
+### Marquer l'assiduité pour une activité
+# Note: Remplacez 'm1' par un ID de membre existant dans la base de données.
+POST {{baseUrl}}/collectivities/{{collectivityId}}/activities/act1/attendance
+Content-Type: application/json
+
+[
+  {
+    "memberId": "m1",
+    "status": "PRESENT"
+  },
+  {
+    "memberId": "m2",
+    "status": "ABSENT",
+    "reason": "Maladie"
+  }
+]
+
+###
+
+### Vérifier l'immutabilité (devrait échouer car m1 est déjà marqué)
+POST {{baseUrl}}/collectivities/{{collectivityId}}/activities/act1/attendance
+Content-Type: application/json
+
+[
+  {
+    "memberId": "m1",
+    "status": "EXCUSED"
+  }
+]
+
+###
+
+### Récupérer la liste d'assiduité pour une activité
+GET {{baseUrl}}/collectivities/{{collectivityId}}/activities/act1/attendance
+Accept: application/json
+
